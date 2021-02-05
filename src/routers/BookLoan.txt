@@ -1,0 +1,32 @@
+BookLoan
+
+pending:  
+isBookLoanRequestPending: true,
+isBookLoanRequestAccepted: false(default),
+isBookReturned: false(default)
+
+rejected: 
+isBookLoanRequestPending: false,
+isBookLoanRequestAccepted: false(default),
+isBookReturned: false(default)
+
+accepted: 
+isBookLoanRequestPending: false,
+isBookLoanRequestAccepted: true,
+isBookReturned: false(default)
+
+book returned: 
+isBookLoanRequestPending: true,
+isBookLoanRequestAccepted: true,
+isBookReturned: true
+
+pending or rejected or accepted:
+isBookLoanRequestPending: does not matter ,
+isBookLoanRequestAccepted: does not matter,
+isBookReturned: false
+
+all book-loans returned or not returned: accepted or returned
+isBookLoanRequestPending: false,
+isBookLoanRequestAccepted: true,
+isBookReturned: does not matter
+
