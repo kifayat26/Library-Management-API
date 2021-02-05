@@ -1,4 +1,5 @@
 const express = require('express')
+const excel = require('node-excel-export')
 require('../db/mongoose')
 const BookLoan = require('../models/book-loan')
 const auth = require('../middlewares/auth')
@@ -136,4 +137,26 @@ router.patch('/bookloanreturned/:id', auth, adminAuth, async(req, res) => {
     }
 })
 
+//excel export book loan: list of unreturned books
+router.get('/bookloandownload', auth, adminAuth, async(req, res) => {
+    const isBookLoanRequestPending = false
+    const isBookLoanRequestAccepted = true
+    const isBookReturned = false
+
+    try {
+        const bookLoans = await BookLoan.find({ 
+            isBookLoanRequestPending,
+            isBookLoanRequestAccepted,
+            isBookReturned
+        })
+
+        const report = excel.buildExport([{
+            name: 'book loan',
+            bookLoans
+        }])
+        res.send(bookLoans)  
+    } catch (error) {
+        res.status(500).send(error)
+    }
+})
 module.exports = router

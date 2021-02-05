@@ -5,11 +5,11 @@ const mongoose = require('mongoose')
 
 const bookLoanSchema = new mongoose.Schema({
     bookID: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
         required: true
     },
     userID: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
         required: true
     },
     isBookLoanRequestPending: {
