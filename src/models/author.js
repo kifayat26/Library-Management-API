@@ -5,7 +5,12 @@ const authorSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true,
-        unique: true
+        unique: true,
+        validate(value) {
+            if (value == "") {
+                throw new Error('author name is invalid')
+            }
+        }
     }
 })
 

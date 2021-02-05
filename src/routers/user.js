@@ -1,7 +1,12 @@
 const express = require('express')
 require('../db/mongoose')
+
+const multer = require('multer')
+const sharp = require('sharp')
+
 const User = require('../models/user')
 const auth = require('../middlewares/auth')
+const adminAuth = require('../middlewares/adminAuth')
 
 const router = new express.Router()
 
@@ -17,7 +22,6 @@ router.post('/user', async(req, res) => {
         res.status(400).send(error)
     }
 })
-
 //user login
 router.post('/user/login', async (req, res) => {
     try {
@@ -51,7 +55,7 @@ router.post('/users/logoutAll', auth, async (req, res) => {
     }
 })
 //read userList
-router.get('/userlist', auth, async(req, res) => {
+router.get('/userlist', auth, adminAuth, async(req, res) => {
     try{
         const users = await User.find({})
         res.send(users)
@@ -64,7 +68,7 @@ router.get('/user/me', auth, (req, res) => {
     res.send(req.user)
 })
 //read user profile by id
-router.get('/user/:id', async(req, res) => {
+router.get('/user/:id', auth, adminAuth, async(req, res) => {
     const _id = req.params.id
     
     try {
@@ -79,7 +83,7 @@ router.get('/user/:id', async(req, res) => {
 })
 
 //update profile
-router.patch('/user/:id', async (req, res) => {
+router.patch('/users/me', auth, async (req, res) => {
     const updates = Object.keys(req.body)
     const allowedUpdates = ['name', 'email', 'password']
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
@@ -89,26 +93,54 @@ router.patch('/user/:id', async (req, res) => {
     }
     
     try {
-        const user = await User.findById(req.params.id)
-        updates.forEach(update => user[update] = req.body[update])
-        await user.save()
-        res.send(user)         
+        updates.forEach(update => req.user[update] = req.body[update])
+        await req.user.save()
+        res.send(req.user)         
     } catch (error) {
         res.status(400).send(error)
     }
 })
 
 //delete Profile
-router.delete('/user/:id', async (req, res) => {
+router.delete('/users/me', auth, async (req, res) => {
     try {
-        const _id = req.params.id
-        const user = await User.findById(_id)
-        if(!user) {
-            res.status(404).send()
-        }
-        await user.remove()
-        res.send(user)
+        await req.user.remove()
+        res.send(req.user)
     } catch (error) {
+        res.status(500).send()
+    }
+})
+//upload avatar
+const upload = multer({
+    limits: {
+        fileSize: 1000000
+     },
+    fileFilter(req, file, callback){
+        if(!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return callback(new Error('Please upload an image'))
+        }
+        callback(undefined, true)
+    }
+})
+router.post('/user/me/avatar', auth, upload.single('avatar'), async (req, res) => {
+    try{
+        const buffer = await sharp(req.file.buffer).resize({width: 250, height: 250}).png().toBuffer()
+        req.user.avatar = buffer
+        await req.user.save()
+        res.send()
+    }catch (error) {
+        res.status(500).send(error)
+    }  
+},(error, req, res, next) => {
+    res.status(400).send({error: error.message})
+} )
+//delete avatar
+router.delete('/user/me/avatar', auth, async(req, res) => {
+    try{
+        req.user.avatar = undefined
+        await req.user.save()
+        res.send()
+    }catch(error) {
         res.status(500).send()
     }
 })

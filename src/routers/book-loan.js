@@ -1,14 +1,13 @@
 const express = require('express')
 require('../db/mongoose')
-const User = require('../models/user')
-const Book = require('../models/book')
-const Author = require('../models/author')
 const BookLoan = require('../models/book-loan')
+const auth = require('../middlewares/auth')
+const adminAuth = require('../middlewares/adminAuth')
 
 const router = new express.Router()
 
 //read list of book-loans that are returned and not returned 
-router.get('/bookloanlist', async(req, res) => {
+router.get('/bookloanlist', auth, adminAuth, async(req, res) => {
     const isBookLoanRequestPending = false
     const isBookLoanRequestAccepted = true
 
@@ -24,7 +23,7 @@ router.get('/bookloanlist', async(req, res) => {
 })
 
 //read list of book-loans that are not returned 
-router.get('/bookloanlistunreturned', async(req, res) => {
+router.get('/bookloanlistunreturned', auth, adminAuth, async(req, res) => {
     const isBookLoanRequestPending = false
     const isBookLoanRequestAccepted = true
     const isBookReturned = false
@@ -42,7 +41,7 @@ router.get('/bookloanlistunreturned', async(req, res) => {
 })
 
 //read list of book-loans that are returned 
-router.get('/bookloanlistreturned', async(req, res) => {
+router.get('/bookloanlistreturned', auth, adminAuth, async(req, res) => {
     const isBookLoanRequestPending = false
     const isBookLoanRequestAccepted = true
     const isBookReturned = true
@@ -60,8 +59,8 @@ router.get('/bookloanlistreturned', async(req, res) => {
 })
 
 //read list of book-loans that are returned and not returned by user: id
-router.get('/bookloanlist/:id', async(req, res) => {
-    const userID = req.params.id
+router.get('/bookloanlist/me', auth, async(req, res) => {
+    const userID = req.user._id
     const isBookLoanRequestPending = false
     const isBookLoanRequestAccepted = true
 
@@ -78,8 +77,8 @@ router.get('/bookloanlist/:id', async(req, res) => {
 })
 
 //read list of book-loans that are not returned by user: id
-router.get('/bookloanlistunreturned/:id', async(req, res) => {
-    const userID = req.params.id
+router.get('/bookloanlistunreturned/me', auth, async(req, res) => {
+    const userID = req.user._id
     const isBookLoanRequestPending = false
     const isBookLoanRequestAccepted = true
     const isBookReturned = false
@@ -98,8 +97,8 @@ router.get('/bookloanlistunreturned/:id', async(req, res) => {
 })
 
 //read list of book-loans that are returned by user: id
-router.get('/bookloanlistreturned/:id', async(req, res) => {
-    const userID = req.params.id
+router.get('/bookloanlistreturned/me', auth, async(req, res) => {
+    const userID = req.user._id
     const isBookLoanRequestPending = false
     const isBookLoanRequestAccepted = true
     const isBookReturned = true
@@ -118,7 +117,7 @@ router.get('/bookloanlistreturned/:id', async(req, res) => {
 })
 
 //loaned book is returned: update bookLoan 
-router.patch('/bookloanreturned/:id', async(req, res) => {
+router.patch('/bookloanreturned/:id', auth, adminAuth, async(req, res) => {
     const _id = req.params.id
 
     try {

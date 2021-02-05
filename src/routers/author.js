@@ -1,14 +1,13 @@
 const express = require('express')
 require('../db/mongoose')
-const User = require('../models/user')
-const Book = require('../models/book')
 const Author = require('../models/author')
-const BookLoan = require('../models/book-loan')
+const auth = require('../middlewares/auth')
+const adminAuth = require('../middlewares/adminAuth')
 
 const router = new express.Router()
 
 //create author
-router.post('/author', async(req, res) => {
+router.post('/author', auth, adminAuth,  async(req, res) => {
     const author = new Author(req.body)
 
     try {
@@ -20,7 +19,7 @@ router.post('/author', async(req, res) => {
 })
 
 //read authorList
-router.get('/authorlist', async(req, res) => {
+router.get('/authorlist', auth, async(req, res) => {
     try{
         const authors = await Author.find({})
         res.send(authors)  
@@ -30,7 +29,7 @@ router.get('/authorlist', async(req, res) => {
 })
 
 //read list of author names includes specific substring: name
-router.get('/authorlist/:name', async(req, res) => {
+router.get('/authorlist/:name', auth, async(req, res) => {
     const name = req.params.name
     try {
         const authors = await Author.find({ name: {$regex: name} })
@@ -41,7 +40,7 @@ router.get('/authorlist/:name', async(req, res) => {
 })
 
 //read author by id
-router.get('/author/:id', async(req, res) => {
+router.get('/author/:id', auth, async(req, res) => {
     const _id = req.params.id
     try {
         const author = await Author.findById(_id)
@@ -55,7 +54,7 @@ router.get('/author/:id', async(req, res) => {
 })
 
 //update author by id
-router.patch('/author/:id', async(req, res) => {
+router.patch('/author/:id', auth, adminAuth, async(req, res) => {
     const _id = req.params.id
     const updates = Object.keys(req.body)
     const allowedUpdates = ['name']
@@ -79,7 +78,7 @@ router.patch('/author/:id', async(req, res) => {
 })
 
 //delete author
-router.delete('/author/:id', async (req, res) => {
+router.delete('/author/:id', auth, adminAuth, async (req, res) => {
     try {
         const _id = req.params.id
         const author = await Author.findById(_id)

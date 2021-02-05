@@ -36,7 +36,10 @@ const userSchema = new mongoose.Schema({
             type: String,
             required: true
         }
-    }]
+    }],
+    avatar: {
+        type: Buffer
+    }
 })
 //hide password and tokens
 userSchema.methods.toJSON = function() {

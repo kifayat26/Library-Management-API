@@ -1,16 +1,19 @@
 const mongoose = require('mongoose')
-//const validator = require('validator')
-//const jwt = require('jsonwebtoken')
-//const bcrypt = require('bcryptjs')
 
 const bookSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        validate(value) {
+            if (value == "") {
+                throw new Error('book name is invalid')
+            }
+        }
     },
     authorID: {
-        type: String
+        type: mongoose.Schema.Types.ObjectId,
+        required: true
     }
 })
 

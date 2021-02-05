@@ -1,15 +1,18 @@
 const express = require('express')
 require('../db/mongoose')
-const User = require('../models/user')
-const Book = require('../models/book')
-const Author = require('../models/author')
 const BookLoan = require('../models/book-loan')
+const auth = require('../middlewares/auth')
+const adminAuth = require('../middlewares/adminAuth')
+const normalUserAuth = require('../middlewares/normalUserAuth')
 
 const router = new express.Router()
 
 //create book loan request
-router.post('/bookloanrequest', async(req, res) => {
-    const bookLoanRequest = new BookLoan(req.body)
+router.post('/bookloanrequest/:bookID', auth, normalUserAuth, async(req, res) => {
+    const bookLoanRequest = new BookLoan({
+        bookID: req.params.id,
+        userID: req.user._id
+    })
 
     try {
         await bookLoanRequest.save()
@@ -20,7 +23,7 @@ router.post('/bookloanrequest', async(req, res) => {
 })
 
 //read list of book-loan-request by admin that are pending
-router.get('/bookloanrequestlist', async(req, res) => {
+router.get('/bookloanrequestlist', auth, async(req, res) => {
     const isBookLoanRequestPending = true
 
     try {
@@ -34,7 +37,7 @@ router.get('/bookloanrequestlist', async(req, res) => {
 })
 
 //read list of book-loan-request by user: id that are pending
-router.get('/bookloanrequestpending/:id', async(req, res) => {
+router.get('/bookloanrequestpending/:id', auth, async(req, res) => {
     const userID = req.params.id
     const isBookLoanRequestPending = true
 
@@ -50,7 +53,7 @@ router.get('/bookloanrequestpending/:id', async(req, res) => {
 })
 
 //read list of book-loan-request by user: id that are pending or rejected or accepted
-router.get('/bookloanrequest/:id', async(req, res) => {
+router.get('/bookloanrequest/:id', auth, async(req, res) => {
     const userID = req.params.id
     const isBookReturned = false
 
@@ -66,7 +69,7 @@ router.get('/bookloanrequest/:id', async(req, res) => {
 })
 
 //accept book loan request: create book loan
-router.patch('/acceptbookloanrequest/:id', async(req, res) => {
+router.patch('/acceptbookloanrequest/:id', auth, adminAuth, async(req, res) => {
     const _id = req.params.id
 
     try {
@@ -95,7 +98,7 @@ router.patch('/acceptbookloanrequest/:id', async(req, res) => {
 })
 
 //reject book loan request
-router.patch('/rejectbookloanrequest/:id', async(req, res) => {
+router.patch('/rejectbookloanrequest/:id', auth, adminAuth, async(req, res) => {
     const _id = req.params.id
 
     try {

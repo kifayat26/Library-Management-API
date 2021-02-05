@@ -1,14 +1,14 @@
 const express = require('express')
 require('../db/mongoose')
-const User = require('../models/user')
 const Book = require('../models/book')
 const Author = require('../models/author')
-const BookLoan = require('../models/book-loan')
+const auth = require('../middlewares/auth')
+const adminAuth = require('../middlewares/adminAuth')
 
 const router = new express.Router()
 
 //create book
-router.post('/book', async(req, res) => {
+router.post('/book', auth, adminAuth, async(req, res) => {
     const book = new Book(req.body)
 
     try {
@@ -20,7 +20,7 @@ router.post('/book', async(req, res) => {
 })
 
 //read bookList
-router.get('/booklist', async(req, res) => {
+router.get('/booklist', auth, async(req, res) => {
     try {
         const books = await Book.find({})
         res.send(books)  
@@ -30,7 +30,7 @@ router.get('/booklist', async(req, res) => {
 })
 
 //read list of book names includes specific substring: name
-router.get('/bookList/:name', async(req, res) => {
+router.get('/bookList/:name', auth, async(req, res) => {
     const name = req.params.name
     
     try {
@@ -41,8 +41,20 @@ router.get('/bookList/:name', async(req, res) => {
     }
 })
 
+//read list of book names with author name
+router.get('/authorbookList/:name', auth, async(req, res) => {
+    const name = req.params.name
+    try {
+        const author = await Author.findOne({ name })
+        const books = await Book.find({authorID: author._id})
+        res.send(books)
+    } catch (error) {
+        res.status(500).send(error)
+    }
+})
+
 //read book by id
-router.get('/book/:id', async(req, res) => {
+router.get('/book/:id', auth, async(req, res) => {
     const _id = req.params.id
 
     try {
@@ -58,7 +70,7 @@ router.get('/book/:id', async(req, res) => {
 
 //update boook by id: can change name of the book and name of the author from the authorList 
 //if the author name is not in the list, it will send an error 
-router.patch('/book/:id', async(req, res) => {
+router.patch('/book/:id', auth, adminAuth, async(req, res) => {
     const _id = req.params.id
     const updates = Object.keys(req.body)
     const allowedUpdates = ['name', 'authorID']
@@ -87,7 +99,7 @@ router.patch('/book/:id', async(req, res) => {
 })
 
 //delete book
-router.delete('/book/:id', async (req, res) => {
+router.delete('/book/:id', auth, adminAuth, async (req, res) => {
     try {
         const _id = req.params.id
         const book = await Book.findById(_id)
